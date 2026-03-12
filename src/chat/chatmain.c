@@ -33,6 +33,10 @@ int ciVersionID = 1;
 /************
 ** DEFINES **
 ************/
+#ifdef __APPLE__
+#undef assert
+#define assert(x) ((void)0)
+#endif
 #define CI_DO_BLOCKING                                                                                                 \
     if (blocking) {                                                                                                    \
         do {                                                                                                           \

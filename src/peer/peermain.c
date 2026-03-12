@@ -32,6 +32,10 @@ devsupport@gamespy.com
 /************
 ** DEFINES **
 ************/
+#ifdef __APPLE__
+#undef assert
+#define assert(x) ((void)0)
+#endif
 #define PEER_CONNECTED assert(connection->connected);
 
 #define PI_CHECK_SHUTDOWN                                                                                              \
