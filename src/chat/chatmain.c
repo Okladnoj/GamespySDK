@@ -341,6 +341,14 @@ static CHAT chatConnectDoit(CILoginType loginType,
     ciConnection* connection;
     const char* socketNick = "";
 
+    printf("CHAT_DEBUG: chatConnectDoit loginType=%d server=%s port=%d nick=%s gamename=%s\n",
+           loginType,
+           serverAddress ? serverAddress : "(null)",
+           port,
+           nick ? nick : "(null)",
+           gamename ? gamename : "(null)");
+    fflush(stdout);
+
     //Added default server address and port
     //assert(serverAddress != NULL);
     assert(callbacks != NULL);
@@ -460,6 +468,8 @@ static CHAT chatConnectDoit(CILoginType loginType,
     // Initialize the socket.
     /////////////////////////
     if (!ciSocketInit(&connection->chatSocket, socketNick)) {
+        printf("CHAT_DEBUG: ciSocketInit FAILED for nick=%s\n", socketNick);
+        fflush(stdout);
         ciCleanupCallbacks((CHAT)connection);
         ciCleanupChannels((CHAT)connection);
         gsifree(connection);
@@ -469,7 +479,11 @@ static CHAT chatConnectDoit(CILoginType loginType,
 
     // Connect the socket.
     //////////////////////
+    printf("CHAT_DEBUG: ciSocketInit OK, calling ciSocketConnect to %s:%d\n", connection->server, connection->port);
+    fflush(stdout);
     if (!ciSocketConnect(&connection->chatSocket, connection->server, connection->port)) {
+        printf("CHAT_DEBUG: ciSocketConnect FAILED to %s:%d\n", connection->server, connection->port);
+        fflush(stdout);
         ciSocketDisconnect(&connection->chatSocket);
         ciCleanupCallbacks((CHAT)connection);
         ciCleanupChannels((CHAT)connection);
@@ -493,6 +507,8 @@ static CHAT chatConnectDoit(CILoginType loginType,
     // Check for a secure connection.
     /////////////////////////////////
     if (gamename && gamename[0] && secretKey && secretKey[0]) {
+        printf("CHAT_DEBUG: sending CRYPT des %d %s\n", ciVersionID, gamename);
+        fflush(stdout);
         // Save the game secret key.
         ////////////////////////////
         strzcpy(connection->secretKey, secretKey, MAX_SECRETKEY);

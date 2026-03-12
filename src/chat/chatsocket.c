@@ -246,13 +246,19 @@ CHATBool ciSocketConnect(ciSocket* sock, const char* serverAddress, int port)
         // Try resolving with DNS.
         //////////////////////////
         host = gethostbyname((char*)serverAddress);
-        if (host == NULL)
+        if (host == NULL) {
+            printf("SOCKET_DEBUG: gethostbyname FAILED for '%s'\n", serverAddress);
+            fflush(stdout);
             return CHATFalse;
+        }
 
         // Get the ip.
         //////////////
         ip = *(unsigned int*)host->h_addr_list[0];
     }
+
+    printf("SOCKET_DEBUG: resolved '%s' to ip=0x%08x\n", serverAddress, ip);
+    fflush(stdout);
 
     // Setup the address.
     /////////////////////
@@ -268,11 +274,17 @@ CHATBool ciSocketConnect(ciSocket* sock, const char* serverAddress, int port)
 	localAddress.sin_addr.s_addr = htonl(bindAddress);
 	localAddress.sin_port = 0;
 
+    printf("SOCKET_DEBUG: bindAddress=0x%08lx localAddr=0x%08x\n", bindAddress, localAddress.sin_addr.s_addr);
+    fflush(stdout);
+
     // Create the socket.
     /////////////////////
     sock->sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock->sock == INVALID_SOCKET)
+    if (sock->sock == INVALID_SOCKET) {
+        printf("SOCKET_DEBUG: socket() FAILED errno=%d\n", errno);
+        fflush(stdout);
         return CHATFalse;
+    }
 
         // Enable keep-alive.
         /////////////////////
@@ -287,17 +299,26 @@ CHATBool ciSocketConnect(ciSocket* sock, const char* serverAddress, int port)
     rcode = bind(sock->sock, (SOCKADDR *)&localAddress, sizeof(SOCKADDR_IN));
     if(gsiSocketIsError(rcode))
     {
+        printf("SOCKET_DEBUG: bind() FAILED rcode=%d errno=%d\n", rcode, errno);
+        fflush(stdout);
         closesocket(sock->sock);
         return CHATFalse;
     }
 
     // Try and connect.
     ///////////////////
+    printf("SOCKET_DEBUG: calling connect()...\n");
+    fflush(stdout);
     rcode = connect(sock->sock, (SOCKADDR*)&address, sizeof(SOCKADDR_IN));
     if (gsiSocketIsError(rcode)) {
+        printf("SOCKET_DEBUG: connect() FAILED rcode=%d errno=%d\n", rcode, errno);
+        fflush(stdout);
         closesocket(sock->sock);
         return CHATFalse;
     }
+
+    printf("SOCKET_DEBUG: connect() SUCCESS\n");
+    fflush(stdout);
 
     // We're connected.
     ///////////////////

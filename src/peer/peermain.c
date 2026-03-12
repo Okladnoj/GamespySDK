@@ -193,6 +193,12 @@ void peerConnectA(PEER peer,
     PI_OP_ID;
     PEER_CONNECTION;
 
+    printf("PEER_SDK: peerConnectA nick='%s' profileID=%d connected=%d connecting=%d title='%s'\n",
+           nick ? nick : "(null)", profileID,
+           (int)connection->connected, (int)connection->connecting,
+           connection->title);
+    fflush(stdout);
+
     assert(nick);
     assert(nick[0]);
     assert(profileID >= 0);
@@ -201,13 +207,20 @@ void peerConnectA(PEER peer,
 
     // Are we already connecting or connected?
     //////////////////////////////////////////
-    if (connection->connected || connection->connecting)
+    if (connection->connected || connection->connecting) {
+        printf("PEER_SDK: FAIL - already connected=%d connecting=%d\n",
+               (int)connection->connected, (int)connection->connecting);
+        fflush(stdout);
         success = PEERFalse;
+    }
 
     // We must have a title set to connect.
     ///////////////////////////////////////
-    if (success && !connection->title[0])
+    if (success && !connection->title[0]) {
+        printf("PEER_SDK: FAIL - title is empty\n");
+        fflush(stdout);
         success = PEERFalse;
+    }
 
     if (success) {
         // Chat.
@@ -228,15 +241,22 @@ void peerConnectA(PEER peer,
 
         // Start connecting.
         ////////////////////
+        printf("PEER_SDK: calling piNewConnectOperation...\n");
+        fflush(stdout);
         if (!piNewConnectOperation(
                 peer, PI_CONNECT, nick, 0, NULL, NULL, NULL, NULL, NULL, NULL, connectCallback, param, opID)) {
+            printf("PEER_SDK: piNewConnectOperation FAILED\n");
+            fflush(stdout);
             success = PEERFalse;
             piDisconnectCleanup(peer);
         }
     }
 
-    if (!success)
+    if (!success) {
+        printf("PEER_SDK: peerConnectA FAILED, calling piAddConnectCallback with PEER_DISCONNECTED\n");
+        fflush(stdout);
         piAddConnectCallback(peer, PEERFalse, PEER_DISCONNECTED, connectCallback, param, opID);
+    }
 
     PI_DO_BLOCKING;
 }
